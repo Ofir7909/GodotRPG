@@ -62,53 +62,6 @@ func SeperateRoomsSteering() -> bool:
 			rooms[i].position.y += 0 if abs(velocity.y) < 0.5 else (1 if velocity.y > 0 else -1)
 	return resolved
 
-func SeperateRoomsPhysics():
-	# Generate Colliders for every room
-	var bodies = Array()
-	var parent = Node2D.new()
-	self.add_child(parent)
-	
-	for i in range(initialRoomCount):
-		var rb = RigidBody2D.new()
-		rb.set_position(rooms[i].getCenter())
-		rb.gravity_scale = 0
-		rb.mode = RigidBody2D.MODE_CHARACTER
-		rb.can_sleep = true
-		
-		var col = CollisionShape2D.new()
-		var shape = RectangleShape2D.new()
-		shape.set_extents(rooms[i].size / 2)
-		col.set_shape(shape)
-		
-		rb.add_child(col)
-		parent.add_child(rb)
-		bodies.append(rb)
-	
-	yield(WaitForColisionResolve(bodies), "completed")
-	#snap to grid
-	for i in range(initialRoomCount):
-		rooms[i].setCenter(bodies[i].position.round())
-	
-func WaitForColisionResolve(rigidbodiesArray: Array) -> void:
-	#wait for the rigidbodies to approximetly be static, uses round()
-	#would be better to use physics.simulate() to simulate inside the function
-	#insted of waiting fot the game physics
-	
-	#store previous positions
-	var positions = PoolVector2Array()
-	for rb in rigidbodiesArray:
-		positions.append(rb.position)
-		
-	var resolved = false
-	while !resolved:
-		yield(get_tree().create_timer(0.5), "timeout")
-		resolved = true #assume resolved unless we find an object who moved.		
-		for i in range(rigidbodiesArray.size()):
-			if positions[i] != rigidbodiesArray[i].position.round():
-				positions[i] = rigidbodiesArray[i].position.round()
-				resolved = false
-	yield(get_tree().create_timer(1), "timeout")
-
 func GenerateGraph():
 	# Get Verticies
 	var delaunay := Graph.new()
