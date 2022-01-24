@@ -6,13 +6,12 @@ export var initialRoomCount : int = 80
 export var initialDistributionDistance: float = 10
 export var minRoomSize := Vector2(2,2)
 export var maxRoomSize := Vector2(8,8)
-export var mainRoomRatio :float = 0.2
+export(float, 0, 1, 0.01) var mainRoomRatio : float = 0.2
+export(float, 0, 1, 0.01) var loopingRatio : float = 0.1
 
 var rand := RandomNumberGenerator.new()
 var rooms := Array()
 var graph := Graph.new()
-#var verts := PoolVector2Array()
-#var links := PoolIntArray()
 
 # Functions
 func _ready() -> void:
@@ -112,32 +111,47 @@ func WaitForColisionResolve(rigidbodiesArray: Array) -> void:
 
 func GenerateGraph():
 	# Get Verticies
+	var delaunay := Graph.new()
 	for i in range(initialRoomCount):
 		if(rooms[i].main):
-			graph.AddVertex(rooms[i].getCenter())
-			#verts.append(rooms[i].getCenter())
+			delaunay.AddVertex(delaunay.GetAvailableVertexIndex() ,rooms[i].getCenter())
 	
 	# triangulate
-	var triangles = Geometry.triangulate_delaunay_2d(graph.vertices)
+	var triangles = Geometry.triangulate_delaunay_2d(delaunay.vertices.values())
 	for i in range(0, triangles.size(), 3):
-		graph.ConnectPoints(triangles[i], triangles[i+1])
-		graph.ConnectPoints(triangles[i+1], triangles[i+2])
-		graph.ConnectPoints(triangles[i+2], triangles[i])
+		delaunay.ConnectPoints(triangles[i], triangles[i+1])
+		delaunay.ConnectPoints(triangles[i+1], triangles[i+2])
+		delaunay.ConnectPoints(triangles[i+2], triangles[i])
 	
-	# minimum spanning tree
-	graph = graph.MinimumSpanningTree()
+	# Minimum spanning tree
+	graph = delaunay.MinimumSpanningTree()
+	
+	# Looping
+	var edgesToAdd := int((delaunay.edges.size() - graph.edges.size()) * loopingRatio)
+	var shuffled := delaunay.edges.duplicate()
+	shuffled.shuffle()
+	var i = 0
+	
+	while edgesToAdd > 0 && i < shuffled.size():
+		var edge = shuffled[i]
+		if not graph.ArePointsConnected(edge.a, edge.b):
+			graph.AddEdge(edge)
+			edgesToAdd -= 1
+		i += 1
 
 func _draw() -> void:
 	DrawRooms()
 
 func DrawRooms():
+	#Draw Rooms
 	for r in rooms:
 		var color = Color(1,0,0) if r.main else Color(rand.randf(), rand.randf(),rand.randf())
 		var rect = Rect2(r.position, r.size)
 		rect.position *= 16
 		rect.size *= 16
 		draw_rect(rect, color, true)
-		
+	
+	#Draw Connections
 	for e in graph.edges:
 		var color = Color(0,1,0)
 		var start = graph.vertices[e.a] * 16
