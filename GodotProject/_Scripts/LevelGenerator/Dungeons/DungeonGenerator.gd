@@ -2,12 +2,16 @@ extends Node2D
 
 #variables
 export var seedNumber: int = 0
-export var initialRoomCount: int = 80
+export var tileSet: TileSet
+
+export var initialRoomCount: int = 50
 export var initialDistributionDistance: float = 10
-export var minRoomSize := Vector2(2, 2)
-export var maxRoomSize := Vector2(8, 8)
+export var minRoomSize := Vector2(4, 4)
+export var maxRoomSize := Vector2(12, 12)
+export var roomsBorder: bool = false
 export(float, 0, 1, 0.01) var mainRoomRatio: float = 0.2
 export(float, 0, 1, 0.01) var loopingRatio: float = 0.1
+export var CorridorWidth: int = 2
 
 var rand := RandomNumberGenerator.new()
 var rooms := Array()
@@ -27,6 +31,7 @@ func _ready() -> void:
 	while !resolved:
 		resolved = SeperateRoomsSteering()
 	GenerateGraph()
+	CreateTilemap()
 	update()  #update draw
 
 
@@ -88,21 +93,73 @@ func GenerateGraph() -> void:
 		delaunay.ConnectPoints(triangles[i + 2], triangles[i])
 
 	# Minimum spanning tree
-	graph = delaunay.MinimumSpanningTree()
+	var msp := delaunay.MinimumSpanningTree()
 
 	# Looping
-	var edgesToAdd := int((delaunay.edges.size() - graph.edges.size()) * loopingRatio)
+	var edgesToAdd := int((delaunay.edges.size() - msp.edges.size()) * loopingRatio)
 	var shuffled := delaunay.edges.duplicate()
 	shuffled.shuffle()
 	var i = 0
 
 	while edgesToAdd > 0 && i < shuffled.size():
 		var edge = shuffled[i]
-		if not graph.ArePointsConnected(edge.a, edge.b):
-			graph.AddEdge(edge)
+		if not msp.ArePointsConnected(edge.a, edge.b):
+			msp.AddEdge(edge)
 			edgesToAdd -= 1
 		i += 1
 
+	graph = msp
+
+
+func CreateTilemap() -> void:
+	#Create the tilemap node
+	var dungeonTilemap = TileMap.new()
+	add_child(dungeonTilemap)
+	dungeonTilemap.mode = TileMap.MODE_SQUARE
+	dungeonTilemap.tile_set = tileSet
+	dungeonTilemap.cell_size = tileSet.autotile_get_size(0)
+
+	# Add rooms to the tilemap
+	for r in rooms:
+		var collide := false
+		for e in graph.edges:
+			var e_start: Vector2 = graph.vertices[e.a]
+			var e_end: Vector2 = graph.vertices[e.b]
+			var e_delta: Vector2 = e_end - e_start
+			var e_mid: Vector2 = e_start + e_delta.x * Vector2.RIGHT
+			# split to make a 90 degree line
+			if r.CheckCollisionLine(e_start, e_mid):
+				collide = true
+			if r.CheckCollisionLine(e_mid, e_end):
+				collide = true
+
+		if collide:
+			var border = 1 if roomsBorder else 0
+			for x in range(r.position.x + border, r.position.x + r.size.x - border):
+				for y in range(r.position.y + border, r.position.y + r.size.y - border):
+					dungeonTilemap.set_cell(x, y, 0)
+
+	#Corridors
+	for e in graph.edges:
+		CarvePath(dungeonTilemap, graph.vertices[e.a], graph.vertices[e.b], 3)
+
+	#update the tilemap
+	dungeonTilemap.update_bitmask_region()
+
+
+func CarvePath(tilemap: TileMap, start: Vector2, end: Vector2, width: float = 1) -> void:
+	var delta := end - start
+	var delta_x_dir := sign(delta.x)
+	var delta_y_dir := sign(delta.y)
+	start = start.round()
+	end = end.round()
+	
+	for x in range(start.x, end.x, delta_x_dir):
+		for y_offset in range(-round(width/2), width - round(width/2), 1):
+			tilemap.set_cell(x, start.y + y_offset, 0)
+	for y in range(start.y, end.y, delta_y_dir):
+		for x_offset in range(-round(width/2), width - round(width/2), 1):
+			tilemap.set_cell(end.x + x_offset, y, 0)
 
 func _draw() -> void:
 	DrawRooms()
@@ -119,7 +176,14 @@ func DrawRooms() -> void:
 
 	#Draw Connections
 	for e in graph.edges:
-		var color = Color(0, 1, 0)
+		var e_start: Vector2 = graph.vertices[e.a]
+		var e_end: Vector2 = graph.vertices[e.b]
+		var e_delta: Vector2 = e_end - e_start
+		var e_mid: Vector2 = e_start + e_delta.x * Vector2.RIGHT
+
+		draw_line(e_start * 16, e_mid * 16, Color(0, 1, 0))
+		draw_line(e_mid * 16, e_end * 16, Color(0, 1, 0))
+
 		var start = graph.vertices[e.a] * 16
 		var end = graph.vertices[e.b] * 16
-		draw_line(start, end, color)
+		draw_line(start, end, Color(0, 0, 1))

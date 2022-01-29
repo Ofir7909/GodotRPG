@@ -1,15 +1,18 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://_Scripts/LevelGenerator/Dungeons/DungeonGenerator.gd" type="Script" id=1]
 [ext_resource path="res://_Content/UI/Grid_16x16.png" type="Texture" id=2]
+[ext_resource path="res://_Content/Environment/CliffGrass_Tileset.tres" type="TileSet" id=3]
 
 [node name="DungeonGenerator" type="Node2D"]
 position = Vector2( 320, 180 )
 scale = Vector2( 0.25, 0.25 )
 script = ExtResource( 1 )
+tileSet = ExtResource( 3 )
+roomsBorder = true
 loopingRatio = 0.08
 
-[node name="TextureRect" type="TextureRect" parent="."]
+[node name="Grid" type="TextureRect" parent="."]
 self_modulate = Color( 1, 1, 1, 0.184314 )
 margin_left = -1344.0
 margin_top = -768.0
