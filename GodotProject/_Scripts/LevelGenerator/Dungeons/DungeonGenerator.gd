@@ -6,9 +6,10 @@ export var tileSet: TileSet
 
 export var initialRoomCount: int = 50
 export var initialDistributionDistance: float = 10
-export var minRoomSize := Vector2(4, 4)
+export var minRoomSize := Vector2(6, 6)
 export var maxRoomSize := Vector2(12, 12)
-export var roomsBorder: bool = false
+enum BORDER { no, small, large }
+export(BORDER) var roomsBorder = BORDER.small
 export(float, 0, 1, 0.01) var mainRoomRatio: float = 0.2
 export(float, 0, 1, 0.01) var loopingRatio: float = 0.1
 export var CorridorWidth: int = 2
@@ -24,7 +25,6 @@ func _ready() -> void:
 		rand.set_seed(seedNumber)
 	else:
 		rand.randomize()
-
 	GenerateRooms()
 
 	var resolved = false
@@ -134,31 +134,34 @@ func CreateTilemap() -> void:
 				collide = true
 
 		if collide:
-			var border = 1 if roomsBorder else 0
+			var border = 1 if roomsBorder == BORDER.large else 0.5 if roomsBorder == BORDER.small else 0
 			for x in range(r.position.x + border, r.position.x + r.size.x - border):
 				for y in range(r.position.y + border, r.position.y + r.size.y - border):
 					dungeonTilemap.set_cell(x, y, 0)
 
 	#Corridors
 	for e in graph.edges:
-		CarvePath(dungeonTilemap, graph.vertices[e.a], graph.vertices[e.b], 3)
+		CarvePath(dungeonTilemap, graph.vertices[e.a], graph.vertices[e.b], CorridorWidth)
 
 	#update the tilemap
 	dungeonTilemap.update_bitmask_region()
 
 
-func CarvePath(tilemap: TileMap, start: Vector2, end: Vector2, width: float = 1) -> void:
+func CarvePath(tilemap: TileMap, start: Vector2, end: Vector2, width: int = 1) -> void:
 	var delta := end - start
 	var delta_x_dir := sign(delta.x)
 	var delta_y_dir := sign(delta.y)
+	
+	var radius : int = round(float(width)/2)	
 	start = start.round()
 	end = end.round()
 	
-	for x in range(start.x, end.x, delta_x_dir):
-		for y_offset in range(-round(width/2), width - round(width/2), 1):
+	
+	for x in range(start.x - radius * delta_x_dir, end.x + radius * delta_x_dir, delta_x_dir):
+		for y_offset in range(-radius, width - radius, 1):
 			tilemap.set_cell(x, start.y + y_offset, 0)
-	for y in range(start.y, end.y, delta_y_dir):
-		for x_offset in range(-round(width/2), width - round(width/2), 1):
+	for y in range(start.y - radius * delta_y_dir, end.y + radius * delta_y_dir, delta_y_dir):
+		for x_offset in range(-radius, width - radius, 1):
 			tilemap.set_cell(end.x + x_offset, y, 0)
 
 func _draw() -> void:

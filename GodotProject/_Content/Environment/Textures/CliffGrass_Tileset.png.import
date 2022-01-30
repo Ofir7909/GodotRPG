@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Road_Autotile.png-bd26ddd9deefdf8d3099599024d541b5.stex"
+path="res://.import/CliffGrass_Tileset.png-19f728e2f84b2c189e07e3e9a566dea3.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://_Content/Environment/Road_Autotile.png"
-dest_files=[ "res://.import/Road_Autotile.png-bd26ddd9deefdf8d3099599024d541b5.stex" ]
+source_file="res://_Content/Environment/Textures/CliffGrass_Tileset.png"
+dest_files=[ "res://.import/CliffGrass_Tileset.png-19f728e2f84b2c189e07e3e9a566dea3.stex" ]
 
 [params]
 

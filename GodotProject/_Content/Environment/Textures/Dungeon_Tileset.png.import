@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/CliffGrass_Autotile.png-ae703bf1bca7b4f089997b6038d40607.stex"
+path="res://.import/Dungeon_Tileset.png-bca2adce8aeb49cfe67cbab675a02212.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://_Content/Environment/CliffGrass_Autotile.png"
-dest_files=[ "res://.import/CliffGrass_Autotile.png-ae703bf1bca7b4f089997b6038d40607.stex" ]
+source_file="res://_Content/Environment/Textures/Dungeon_Tileset.png"
+dest_files=[ "res://.import/Dungeon_Tileset.png-bca2adce8aeb49cfe67cbab675a02212.stex" ]
 
 [params]
 

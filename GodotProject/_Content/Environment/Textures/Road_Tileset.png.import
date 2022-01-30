@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/Grass_Tiling.png-b25be1924e799f9225e01503563d091d.stex"
+path="res://.import/Road_Tileset.png-dc3b71d55a14b6899f1d9f42490c5c19.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://_Content/Environment/Grass_Tiling.png"
-dest_files=[ "res://.import/Grass_Tiling.png-b25be1924e799f9225e01503563d091d.stex" ]
+source_file="res://_Content/Environment/Textures/Road_Tileset.png"
+dest_files=[ "res://.import/Road_Tileset.png-dc3b71d55a14b6899f1d9f42490c5c19.stex" ]
 
 [params]
 
@@ -19,7 +19,7 @@ compress/lossy_quality=0.7
 compress/hdr_mode=0
 compress/bptc_ldr=0
 compress/normal_map=0
-flags/repeat=1
+flags/repeat=0
 flags/filter=false
 flags/mipmaps=false
 flags/anisotropic=false
